@@ -1,25 +1,87 @@
+
 <!DOCTYPE html>
 <html lang="de">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Streichholzspiel 21</title>
+
+    <script src="https://cdn.jsdelivr.net/pyodide/v0.27.7/full/pyodide.js"></script>
+
+    <style>
+        body {
+            background: #171717;
+            color: white;
+            font-family: Consolas, monospace;
+            padding: 20px;
+        }
+
+        #terminal {
+            background: #000;
+            color: #e5e5e5;
+            padding: 20px;
+            min-height: 400px;
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+        }
+
+        #eingabe {
+            background: #000;
+            color: #fff;
+            border: none;
+            outline: none;
+            font: inherit;
+            width: 90%;
+        }
+    </style>
 </head>
 <body>
-    <h1>Streichholzspiel 21</h1>
-    <p>Wer das letzte Streichholz nimmt, verliert!</p>
+    <h2>Streichholzspiel 21</h2>
 
-    <h2>Verbleibende Streichhölzer: <span id="anzahl">21</span></h2>
+    <div id="terminal">Python wird geladen...</div>
+    <input id="eingabe" autocomplete="off"
+           placeholder="Hier eingeben und Enter drücken">
 
-    <p id="hoelzer">| | | | | | | | | | | | | | | | | | | | |</p>
+    <script>
+        const terminal = document.getElementById("terminal");
+        const eingabe = document.getElementById("eingabe");
 
-    <h3>Wie viele Hölzer möchtest du nehmen?</h3>
+        function ausgeben(text) {
+            terminal.textContent += text;
+            window.scrollTo(0, document.body.scrollHeight);
+        }
 
-    <button>1 Holz</button>
-    <button>2 Hölzer</button>
-    <button>3 Hölzer</button>
-    <button>4 Hölzer</button>
+        async function starten() {
+            try {
+                const pyodide = await loadPyodide();
 
-    <p id="meldung">Das Spiel kann beginnen!</p>
+                const antwort = await fetch("./spiel.py");
+                if (!antwort.ok) {
+                    throw new Error("spiel.py konnte nicht geladen werden.");
+                }
+
+                const code = await antwort.text();
+
+                terminal.textContent = "";
+
+                pyodide.setStdout({
+                    batched: text => ausgeben(text + "\n")
+                });
+
+                pyodide.setStderr({
+                    batched: text => ausgeben(text + "\n")
+                });
+
+                // Die Eingabefunktion ergänzen wir im nächsten Schritt.
+                ausgeben("Python ist bereit!\n");
+                ausgeben("Die Spieleingabe wird noch eingerichtet.\n");
+
+            } catch (fehler) {
+                ausgeben("\nFehler: " + fehler.message);
+            }
+        }
+
+        starten();
+    </script>
 </body>
 </html>
