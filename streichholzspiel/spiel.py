@@ -9,7 +9,7 @@ while start == "ja":
     print(f"\nSchwierigkeit: \n1. Leicht \n2. Mittel \n3. Schwer")
     while True:
         try:
-            difficulty = int(input("Tippe (1, 2 oder 3): "))
+            difficulty = int(await browser_input("Tippe (1, 2 oder 3): "))
             if 1 <= difficulty <= 3:
                 break
             print(f"Fehler! Bitte tippe eine Zahl zwischen 1 und 3 ein.")
@@ -36,7 +36,7 @@ while start == "ja":
             print (f"\nStreichhölzer auf dem Tisch: {" | " * streichhoelzer} {streichhoelzer}")
             while True:
                 try:
-                    player = int(input("Wie viele Hölzer nimmst du: "))
+                    player = int(await browser_input("Wie viele Hölzer nimmst du: "))
                     if 1 <= player <= 4:
                         if player > streichhoelzer:
                             print(f"Du kannst nicht {player} Hölzer nehmen! Es sind nur noch {streichhoelzer} übrig!")
@@ -94,7 +94,7 @@ while start == "ja":
                 break
 
     while True:
-        start =(str(input("\nWillst du nochmal spielen? (ja/nein): ")))
+        start = await browser_input("\nWillst du nochmal spielen? (ja/nein): ")
         if start == "ja" or start == "nein":
             break
         else:
