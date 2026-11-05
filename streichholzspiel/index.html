@@ -64,11 +64,21 @@
 
                 terminal.textContent = "";
 
-               pyodide.setStdout({
-    raw: byte => ausgeben(
-        new TextDecoder().decode(new Uint8Array([byte]))
-    )
+              
+const decoder = new TextDecoder("utf-8");
+
+pyodide.setStdout({
+    raw: byte => {
+        const text = decoder.decode(
+            new Uint8Array([byte]),
+            { stream: true }
+        );
+        if (text) {
+            ausgeben(text);
+        }
+    }
 });
+
 
                 pyodide.setStderr({
                     batched: text => ausgeben(text + "\n")
