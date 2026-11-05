@@ -72,7 +72,26 @@
                     batched: text => ausgeben(text + "\n")
                 });
 
-                // Die Eingabefunktion ergänzen wir im nächsten Schritt.
+                
+const eingabeAbwarten = () => new Promise(resolve => {
+    eingabe.disabled = false;
+    eingabe.focus();
+
+    eingabe.onkeydown = event => {
+        if (event.key === "Enter") {
+            const wert = eingabe.value;
+            eingabe.value = "";
+            eingabe.disabled = true;
+            eingabe.onkeydown = null;
+
+            ausgeben(wert + "\n");
+            resolve(wert);
+        }
+    };
+});
+
+pyodide.globals.set("browser_eingabe", eingabeAbwarten);
+
                 ausgeben("Python ist bereit!\n");
                 ausgeben("Die Spieleingabe wird noch eingerichtet.\n");
 
