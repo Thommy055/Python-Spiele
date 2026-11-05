@@ -92,8 +92,25 @@ const eingabeAbwarten = () => new Promise(resolve => {
 
 pyodide.globals.set("browser_eingabe", eingabeAbwarten);
 
-                ausgeben("Python ist bereit!\n");
-                ausgeben("Die Spieleingabe wird noch eingerichtet.\n");
+                
+const pythonCode = `
+import asyncio
+import builtins
+
+async def browser_input(frage=""):
+    print(frage, end="")
+    return await browser_eingabe()
+
+async def hauptprogramm():
+    quelle = ${JSON.stringify(code)}
+    quelle = quelle.replace("input(", "await browser_input(")
+    exec(quelle)
+
+await hauptprogramm()
+`;
+
+await pyodide.runPythonAsync(pythonCode);
+
 
             } catch (fehler) {
                 ausgeben("\nFehler: " + fehler.message);
