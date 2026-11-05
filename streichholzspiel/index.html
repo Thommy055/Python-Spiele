@@ -93,23 +93,58 @@ const eingabeAbwarten = () => new Promise(resolve => {
 pyodide.globals.set("browser_eingabe", eingabeAbwarten);
 
                 
+
 const pythonCode = `
+import ast
 import asyncio
-import builtins
+import inspect
+import time
 
 async def browser_input(frage=""):
-    print(frage, end="")
+    print(frage, end="", flush=True)
     return await browser_eingabe()
 
-async def hauptprogramm():
-    quelle = ${JSON.stringify(code)}
-    quelle = quelle.replace("input(", "await browser_input(")
-    exec(quelle)
+quelle = ${JSON.stringify(code)}
 
-await hauptprogramm()
+# Python-Code so vorbereiten, dass await erlaubt ist
+baum = ast.parse(quelle)
+
+# time.sleep() durch asynchrone Pausen ersetzen
+class PausenAnpassen(ast.NodeTransformer):
+    def visit_Call(self, node):
+        self.generic_visit(node)
+        if (
+            isinstance(node.func, ast.Attribute)
+            and isinstance(node.func.value, ast.Name)
+            and node.func.value.id == "time"
+            and node.func.attr == "sleep"
+        ):
+            node.func = ast.Attribute(
+                value=ast.Name(id="asyncio", ctx=ast.Load()),
+                attr="sleep",
+                ctx=ast.Load()
+            )
+            return ast.copy_location(
+                ast.Await(value=node), node
+            )
+        return node
+
+baum = PausenAnpassen().visit(baum)
+ast.fix_missing_locations(baum)
+
+programm = compile(
+    baum, "spiel.py", "exec",
+    flags=ast.PyCF_ALLOW_TOP_LEVEL_AWAIT
+)
+
+ergebnis = eval(programm, globals())
+
+if inspect.isawaitable(ergebnis):
+    await ergebnis
 `;
 
 await pyodide.runPythonAsync(pythonCode);
+
 
 
             } catch (fehler) {
